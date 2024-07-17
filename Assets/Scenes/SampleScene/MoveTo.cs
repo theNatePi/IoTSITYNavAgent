@@ -46,15 +46,22 @@ public class MoveTo : MonoBehaviour {
                 for (int i = 1; i < path.corners.Length; ++i) {
                     pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
                 }
+                if (pathLength < minPathLength) {
+                    minPathLength = pathLength;
+                    targetGoal = goal;
+                }
             }
 
-            if (pathLength < minPathLength) {
-            minPathLength = pathLength;
-            targetGoal = goal;
-            }
+            
         }
-
-        return targetGoal.transform.position; 
+        if (targetGoal != null) {
+            return targetGoal.transform.position;
+        }
+        else {
+            Debug.LogWarning("No valid goal found");
+            return agent.transform.position;
+        }
+         
     }
 
 
