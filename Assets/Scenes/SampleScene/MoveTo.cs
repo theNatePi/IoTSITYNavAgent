@@ -3,6 +3,8 @@ using UnityEditor.EditorTools;
 using UnityEngine;
 using UnityEngine.AI;
 
+//test push
+
 public class MoveTo : MonoBehaviour {
     GameObject[] evacPoints;
     NavMeshAgent agent;
