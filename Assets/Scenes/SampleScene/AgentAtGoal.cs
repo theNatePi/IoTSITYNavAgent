@@ -11,7 +11,6 @@ public class AgentAtGoal : MonoBehaviour
     [Range(1, 100000)]
     public int capacity = 10;
     public int population = 0;
-    // public List<NavMeshAgent> agentPopulation = new List<NavMeshAgent>();
     HashSet<NavMeshAgent> uniqueAgents = new HashSet<NavMeshAgent>();
 
     void Update()
