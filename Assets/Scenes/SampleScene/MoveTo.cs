@@ -18,8 +18,8 @@ public class MoveTo : MonoBehaviour {
     public enum AgentClass { None, Student }
 
     // Public attributes
-    [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(1f, 500f)]
-    public float evacDespawnDelay = 1f;
+    [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
+    public float evacDespawnDelay = 10f;
     [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
     public bool evacuate = false;
     public AgentClass currentClass;
@@ -75,6 +75,10 @@ public class MoveTo : MonoBehaviour {
     void Start () {
         agent = GetComponent<NavMeshAgent>();
         obstacle = GetComponent<NavMeshObstacle>();
+        MeshRenderer Mesh;
+        Mesh = GetComponent<MeshRenderer>();
+        Vector3 a = Mesh.transform.position;
+
 
         agent.destination = GetGoal(agent);
     }
