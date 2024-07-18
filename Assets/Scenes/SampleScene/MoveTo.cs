@@ -1,15 +1,20 @@
 // MoveTo.class
-using UnityEditor.EditorTools;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class MoveTo : MonoBehaviour {
-    GameObject[] evacPoints;
     NavMeshAgent agent;
     NavMeshObstacle obstacle;
     float updateTimer = 0f;
     float updateInterval = 2f;
     float evacDespawnCount = 0f;
+    bool reachedGoal = true;
+    public GameObject currentGoal;
 
     [TextArea(1,1000)]
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
@@ -26,11 +31,13 @@ public class MoveTo : MonoBehaviour {
 
     // Tags for points
     readonly string evacTag = "EvacPoint";
+    readonly string studentTag = "StudentTest";
+
+    // other
+    List<GameObject> evacPoints;
 
 
     Vector3 GetEvacPoint(NavMeshAgent agent) {
-        evacPoints = GameObject.FindGameObjectsWithTag(evacTag);
-
         float minPathLength = Mathf.Infinity;
 
         GameObject targetGoal = null;
@@ -52,7 +59,24 @@ public class MoveTo : MonoBehaviour {
             }
         }
 
+        currentGoal = targetGoal;
         return targetGoal.transform.position; 
+    }
+
+    Vector3 GetStudentGoal(NavMeshAgent agent) {
+        GameObject[] studentPoints;
+        studentPoints = GameObject.FindGameObjectsWithTag(studentTag);
+
+        System.Random random = new();
+
+        // Get a random index within the array's length
+        int randomIndex = random.Next(studentPoints.Length);
+
+        // Access the random element
+        GameObject randomElement = studentPoints[randomIndex];
+
+        currentGoal = randomElement;
+        return randomElement.transform.position; 
     }
 
 
@@ -62,7 +86,7 @@ public class MoveTo : MonoBehaviour {
         } else {
             switch (currentClass) {
                 case AgentClass.Student:
-                    return agent.transform.position;
+                    return GetStudentGoal(agent);
                 case AgentClass.None:
                     return agent.transform.position;
                 default:
@@ -79,6 +103,8 @@ public class MoveTo : MonoBehaviour {
         Mesh = GetComponent<MeshRenderer>();
         Vector3 a = Mesh.transform.position;
 
+        evacPoints = GameObject.FindGameObjectsWithTag(evacTag).ToList();
+
 
         agent.destination = GetGoal(agent);
     }
@@ -88,12 +114,34 @@ public class MoveTo : MonoBehaviour {
         updateTimer += Time.deltaTime;
 
         if (updateTimer >= updateInterval) {
-            agent.destination = GetGoal(agent);
-            if ((agent.remainingDistance <= agent.stoppingDistance + 1) & evacuate) {
-                if (evacDespawnCount == evacDespawnDelay) {
-                    Destroy(gameObject);
+            if (reachedGoal & !evacuate) {
+                agent.destination = GetGoal(agent);
+                reachedGoal = false;
+            } else if (evacuate) {
+                agent.destination = GetGoal(agent);
+            }
+            if (agent.remainingDistance <= agent.stoppingDistance + 1) {
+                if (evacuate) {
+                    if (evacDespawnCount == evacDespawnDelay) {
+                        // Destroy(gameObject);
+                        AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
+                        if (goalScript.population >= goalScript.capacity) {
+                            // This evac point is full
+                            Debug.Log("evac point full");
+                            evacPoints.Remove(currentGoal);
+
+                            if (evacPoints.Count > 0) {
+                                agent.destination = GetGoal(agent);
+                            } else {
+                                Debug.Log("No evacuation points available!");
+                                evacuate = false;
+                            }
+                        }
+                    } else {
+                        evacDespawnCount++;
+                    }
                 } else {
-                    evacDespawnCount++;
+                    reachedGoal = true;
                 }
             } else {
                 evacDespawnCount = 0;
