@@ -22,9 +22,6 @@ public class AgentAtGoal : MonoBehaviour
         {
             if (collider.CompareTag("Agent"))
             {
-                // Agent is within 3 units
-                Debug.Log("Agent detected within 3 units");
-                // Do something with the agent, e.g.,
                 NavMeshAgent agent = collider.GetComponent<NavMeshAgent>();
                 if (agent != null && !uniqueAgents.Contains(agent)) {
                     if (population < capacity) {
