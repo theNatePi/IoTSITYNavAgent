@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,22 +11,64 @@ public abstract class AgentBase : MonoBehaviour {
 
     // Update is called once per frame
     public abstract void Update();
+
+    public virtual GameObject GetNextPassive() {return new GameObject();}
+
+    public virtual GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
+        float minPathLength = Mathf.Infinity;
+
+        GameObject targetGoal = null;
+
+        foreach (GameObject goal in evacPoints) {
+            NavMeshPath path = new NavMeshPath();
+            agent.CalculatePath(goal.transform.position, path);
+
+            float pathLength = 0.0f;
+            if (path.status == NavMeshPathStatus.PathComplete) {
+                for (int i = 1; i < path.corners.Length; ++i) {
+                    pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+            }
+
+            if (pathLength < minPathLength) {
+            minPathLength = pathLength;
+            targetGoal = goal;
+            }
+        }
+
+        return targetGoal;
+    }
 }
 
 public class StudentClass : AgentBase {
-    [SerializeField]
-    public int test = 5;
-    
-    public override void Start()
-    {
-        Debug.Log("Start");
+    public int a = 5;
+
+    // Start is called before the first frame update
+    public override void Start(){
     }
 
     // Update is called once per frame
-    public override void Update()
-    {
-        Debug.Log("Update");
+    public override void Update() {
     }
+
+    public override GameObject GetNextPassive() {
+        GameObject[] studentPoints;
+        studentPoints = GameObject.FindGameObjectsWithTag("StudentTest");
+
+        System.Random random = new();
+
+        // Get a random index within the array's length
+        int randomIndex = random.Next(studentPoints.Length);
+
+        // Access the random element
+        GameObject randomElement = studentPoints[randomIndex];
+
+        return randomElement; 
+    }
+
+    // public override GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
+
+    // }
 }
 
 public class MoveTo : MonoBehaviour {
@@ -50,58 +91,20 @@ public class MoveTo : MonoBehaviour {
     public float evacDespawnDelay = 10f;
     [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
     public bool evacuate = false;
+    [Tooltip("You cannot change this during playback")]
     public AgentClass currentClass;
+    AgentBase ClassObject;
 
     // Tags for points
     readonly string evacTag = "EvacPoint";
-    readonly string studentTag = "StudentTest";
 
     // other
     List<GameObject> evacPoints;
 
-    AgentBase ClassObject;
-
 
     Vector3 GetEvacPoint(NavMeshAgent agent) {
-        float minPathLength = Mathf.Infinity;
-
-        GameObject targetGoal = null;
-
-        foreach (GameObject goal in evacPoints) {
-            NavMeshPath path = new NavMeshPath();
-            agent.CalculatePath(goal.transform.position, path);
-
-            float pathLength = 0.0f;
-            if (path.status == NavMeshPathStatus.PathComplete) {
-                for (int i = 1; i < path.corners.Length; ++i) {
-                    pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                }
-            }
-
-            if (pathLength < minPathLength) {
-            minPathLength = pathLength;
-            targetGoal = goal;
-            }
-        }
-
-        currentGoal = targetGoal;
-        return targetGoal.transform.position; 
-    }
-
-    Vector3 GetStudentGoal(NavMeshAgent agent) {
-        GameObject[] studentPoints;
-        studentPoints = GameObject.FindGameObjectsWithTag(studentTag);
-
-        System.Random random = new();
-
-        // Get a random index within the array's length
-        int randomIndex = random.Next(studentPoints.Length);
-
-        // Access the random element
-        GameObject randomElement = studentPoints[randomIndex];
-
-        currentGoal = randomElement;
-        return randomElement.transform.position; 
+        currentGoal = ClassObject.GetEvacPoint(evacPoints, agent);
+        return currentGoal.transform.position;
     }
 
 
@@ -111,11 +114,13 @@ public class MoveTo : MonoBehaviour {
         } else {
             switch (currentClass) {
                 case AgentClass.Student:
-                    return GetStudentGoal(agent);
+                    currentGoal = ClassObject.GetNextPassive();
+                    return currentGoal.transform.position;
                 case AgentClass.None:
                     return agent.transform.position;
                 default:
                     return agent.transform.position;
+                
             }
         }
     }
@@ -163,13 +168,11 @@ public class MoveTo : MonoBehaviour {
                         AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
                         if (goalScript.population >= goalScript.capacity) {
                             // This evac point is full
-                            Debug.Log("evac point full");
                             evacPoints.Remove(currentGoal);
 
                             if (evacPoints.Count > 0) {
                                 agent.destination = GetGoal(agent);
                             } else {
-                                Debug.Log("No evacuation points available!");
                                 evacuate = false;
                             }
                         }
