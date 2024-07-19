@@ -2,42 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class MoveTo : MonoBehaviour {
-    NavMeshAgent agent;
-    NavMeshObstacle obstacle;
-    float updateTimer = 0f;
-    float updateInterval = 2f;
-    float evacDespawnCount = 0f;
-    bool reachedGoal = true;
-    public GameObject currentGoal;
+public abstract class AgentBase : MonoBehaviour {
+    // Start is called before the first frame update
+    public abstract void Start();
 
-    [TextArea(1,1000)]
-    public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
+    // Update is called once per frame
+    public abstract void Update();
 
-    // Set available classes for your agent here
-    public enum AgentClass { None, Student }
+    public virtual GameObject GetNextPassive() {return new GameObject();}
 
-    // Public attributes
-    [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
-    public float evacDespawnDelay = 10f;
-    [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
-    public bool evacuate = false;
-    public AgentClass currentClass;
-
-    // Tags for points
-    readonly string evacTag = "EvacPoint";
-    readonly string studentTag = "StudentTest";
-
-    // other
-    List<GameObject> evacPoints;
-
-
-    Vector3 GetEvacPoint(NavMeshAgent agent) {
+    public virtual GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
         float minPathLength = Mathf.Infinity;
 
         GameObject targetGoal = null;
@@ -59,13 +36,24 @@ public class MoveTo : MonoBehaviour {
             }
         }
 
-        currentGoal = targetGoal;
-        return targetGoal.transform.position; 
+        return targetGoal;
+    }
+}
+
+public class StudentClass : AgentBase {
+    public int a = 5;
+
+    // Start is called before the first frame update
+    public override void Start(){
     }
 
-    Vector3 GetStudentGoal(NavMeshAgent agent) {
+    // Update is called once per frame
+    public override void Update() {
+    }
+
+    public override GameObject GetNextPassive() {
         GameObject[] studentPoints;
-        studentPoints = GameObject.FindGameObjectsWithTag(studentTag);
+        studentPoints = GameObject.FindGameObjectsWithTag("StudentTest");
 
         System.Random random = new();
 
@@ -75,8 +63,48 @@ public class MoveTo : MonoBehaviour {
         // Access the random element
         GameObject randomElement = studentPoints[randomIndex];
 
-        currentGoal = randomElement;
-        return randomElement.transform.position; 
+        return randomElement; 
+    }
+
+    // public override GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
+
+    // }
+}
+
+public class MoveTo : MonoBehaviour {
+    NavMeshAgent agent;
+    NavMeshObstacle obstacle;
+    float updateTimer = 0f;
+    float updateInterval = 2f;
+    float evacDespawnCount = 0f;
+    bool reachedGoal = true;
+    public GameObject currentGoal;
+
+    [TextArea(1,1000)]
+    public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
+
+    // Set available classes for your agent here
+    public enum AgentClass { None, Student }
+
+    // Public attributes
+    [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
+    public float evacDespawnDelay = 10f;
+    [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
+    public bool evacuate = false;
+    [Tooltip("You cannot change this during playback")]
+    public AgentClass currentClass;
+    AgentBase ClassObject;
+
+    // Tags for points
+    readonly string evacTag = "EvacPoint";
+
+    // other
+    List<GameObject> evacPoints;
+
+
+    Vector3 GetEvacPoint(NavMeshAgent agent) {
+        currentGoal = ClassObject.GetEvacPoint(evacPoints, agent);
+        return currentGoal.transform.position;
     }
 
 
@@ -86,16 +114,18 @@ public class MoveTo : MonoBehaviour {
         } else {
             switch (currentClass) {
                 case AgentClass.Student:
-                    return GetStudentGoal(agent);
+                    currentGoal = ClassObject.GetNextPassive();
+                    return currentGoal.transform.position;
                 case AgentClass.None:
                     return agent.transform.position;
                 default:
                     return agent.transform.position;
+                
             }
         }
     }
 
-  
+
     void Start () {
         agent = GetComponent<NavMeshAgent>();
         obstacle = GetComponent<NavMeshObstacle>();
@@ -105,6 +135,17 @@ public class MoveTo : MonoBehaviour {
 
         evacPoints = GameObject.FindGameObjectsWithTag(evacTag).ToList();
 
+        switch (currentClass) {
+            case AgentClass.Student:
+                ClassObject = gameObject.AddComponent<StudentClass>();
+                break;
+            case AgentClass.None:
+                ClassObject = gameObject.AddComponent<AgentBase>();
+                break;
+            default:
+                ClassObject = gameObject.AddComponent<AgentBase>();
+                break;
+        }
 
         agent.destination = GetGoal(agent);
     }
@@ -127,13 +168,11 @@ public class MoveTo : MonoBehaviour {
                         AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
                         if (goalScript.population >= goalScript.capacity) {
                             // This evac point is full
-                            Debug.Log("evac point full");
                             evacPoints.Remove(currentGoal);
 
                             if (evacPoints.Count > 0) {
                                 agent.destination = GetGoal(agent);
                             } else {
-                                Debug.Log("No evacuation points available!");
                                 evacuate = false;
                             }
                         }
