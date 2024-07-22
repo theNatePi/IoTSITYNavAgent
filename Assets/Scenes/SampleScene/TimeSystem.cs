@@ -8,7 +8,7 @@ public class TimeSystem : MonoBehaviour
     public float timeScale = 1f;  // 1:1 time
     public string initialTime = "08:00:00";
     private float elapsedTime = 0f;
-    private DateTime simulatedTime;
+    public DateTime simulatedTime;
 
     private Text timeText;
 
@@ -32,6 +32,7 @@ public class TimeSystem : MonoBehaviour
         // Update the simulated time based on the elapsed real-time and time scale
         elapsedTime += Time.deltaTime * timeScale;
         simulatedTime = simulatedTime.AddSeconds(Time.deltaTime * timeScale);
+        Time.timeScale = timeScale;
         UpdateTimeDisplay();
     }
 

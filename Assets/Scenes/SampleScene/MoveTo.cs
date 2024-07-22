@@ -6,22 +6,25 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public abstract class AgentBase : MonoBehaviour {
-    // Start is called before the first frame update
-    public abstract void Start();
+    public NavMeshAgent _agent;
 
     // Update is called once per frame
     public abstract void Update();
 
+    public virtual void AssignAgent (NavMeshAgent agent) {
+        _agent = agent;
+    }
+
     public virtual GameObject GetNextPassive() {return new GameObject();}
 
-    public virtual GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
+    public virtual GameObject GetEvacPoint(List<GameObject> evacPoints) {
         float minPathLength = Mathf.Infinity;
 
         GameObject targetGoal = null;
 
         foreach (GameObject goal in evacPoints) {
             NavMeshPath path = new NavMeshPath();
-            agent.CalculatePath(goal.transform.position, path);
+            _agent.CalculatePath(goal.transform.position, path);
 
             float pathLength = 0.0f;
             if (path.status == NavMeshPathStatus.PathComplete) {
@@ -43,8 +46,8 @@ public abstract class AgentBase : MonoBehaviour {
 public class StudentClass : AgentBase {
     public int a = 5;
 
-    // Start is called before the first frame update
-    public override void Start(){
+    public override void AssignAgent (NavMeshAgent agent) {
+        _agent = agent;
     }
 
     // Update is called once per frame
@@ -73,12 +76,14 @@ public class StudentClass : AgentBase {
 
 public class MoveTo : MonoBehaviour {
     NavMeshAgent agent;
-    NavMeshObstacle obstacle;
     float updateTimer = 0f;
     float updateInterval = 2f;
     float evacDespawnCount = 0f;
     bool reachedGoal = true;
     public GameObject currentGoal;
+    private GameObject TimeSystem;
+    private float _timeScale;
+    private DateTime _currentTime;
 
     [TextArea(1,1000)]
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
@@ -102,15 +107,15 @@ public class MoveTo : MonoBehaviour {
     List<GameObject> evacPoints;
 
 
-    Vector3 GetEvacPoint(NavMeshAgent agent) {
-        currentGoal = ClassObject.GetEvacPoint(evacPoints, agent);
+    Vector3 GetEvacPoint() {
+        currentGoal = ClassObject.GetEvacPoint(evacPoints);
         return currentGoal.transform.position;
     }
 
 
     Vector3 GetGoal (NavMeshAgent agent) {
         if (evacuate) {
-            return GetEvacPoint(agent);
+            return GetEvacPoint();
         } else {
             switch (currentClass) {
                 case AgentClass.Student:
@@ -128,22 +133,25 @@ public class MoveTo : MonoBehaviour {
 
     void Start () {
         agent = GetComponent<NavMeshAgent>();
-        obstacle = GetComponent<NavMeshObstacle>();
-        MeshRenderer Mesh;
-        Mesh = GetComponent<MeshRenderer>();
-        Vector3 a = Mesh.transform.position;
 
         evacPoints = GameObject.FindGameObjectsWithTag(evacTag).ToList();
+
+        TimeSystem = GameObject.Find("TimeSystem");
+        _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
+        _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
         switch (currentClass) {
             case AgentClass.Student:
                 ClassObject = gameObject.AddComponent<StudentClass>();
+                ClassObject.AssignAgent(agent);
                 break;
             case AgentClass.None:
                 ClassObject = gameObject.AddComponent<AgentBase>();
+                ClassObject.AssignAgent(agent);
                 break;
             default:
                 ClassObject = gameObject.AddComponent<AgentBase>();
+                ClassObject.AssignAgent(agent);
                 break;
         }
 
@@ -153,6 +161,9 @@ public class MoveTo : MonoBehaviour {
 
     void Update() {
         updateTimer += Time.deltaTime;
+
+        _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
+        _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
         if (updateTimer >= updateInterval) {
             if (reachedGoal & !evacuate) {
