@@ -7,7 +7,7 @@ public class TimeSystem : MonoBehaviour
 {
     public float timeScale = 1f;  // 1:1 time
     public string initialTime = "08:00:00";
-    private float _elapsedTime = 0f;
+    private float elapsedTime = 0f;
     public DateTime simulatedTime;
 
     private Text timeText;
