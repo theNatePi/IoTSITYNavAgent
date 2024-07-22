@@ -100,12 +100,4 @@ public class TimeSystem : MonoBehaviour
         UpdateTimeDisplay();
     }
 
-    
-
-    // Methods to control the time scale via UI buttons
-    public void SetSpeed1x() { SetTimeScale(1f); }
-    public void SetSpeed2x() { SetTimeScale(2f); }
-    public void SetSpeed4x() { SetTimeScale(4f); }
-    public void SetSpeed8x() { SetTimeScale(8f); }
-    public void SetSpeed32x() { SetTimeScale(32f); }
 }
