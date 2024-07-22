@@ -164,7 +164,6 @@ public class MoveTo : MonoBehaviour {
             if (agent.remainingDistance <= agent.stoppingDistance + 1) {
                 if (evacuate) {
                     if (evacDespawnCount == evacDespawnDelay) {
-                        // Destroy(gameObject);
                         AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
                         if (goalScript.population >= goalScript.capacity) {
                             // This evac point is full
@@ -185,6 +184,8 @@ public class MoveTo : MonoBehaviour {
             } else {
                 evacDespawnCount = 0;
             }
+
+            updateTimer = 0f;
         }
     }
 }
