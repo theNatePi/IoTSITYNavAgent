@@ -7,6 +7,7 @@ TagManager:
   - EvacPoint
   - Agent
   - StudentTest
+  - GenericBuilding
   layers:
   - Default
   - TransparentFX
