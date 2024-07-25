@@ -5,23 +5,24 @@ using System.Linq;
 using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEditor;
+
+public enum Disabilities {
+    None,
+    Wheelchair,
+    ImpairedVision,
+    Crutches
+}
 
 public abstract class AgentBase : MonoBehaviour {
     public NavMeshAgent _agent;
 
-    private Dictionary<Disabilities, bool> dis = new Dictionary<Disabilities, bool>();
-
-    [Range(1, 150)]
-    public int age = RandomNumberGenerator.GetInt32(1, 90);
+    
 
     // Update is called once per frame
     public abstract void Update();
 
-    private void Awake() {
-        foreach (Disabilities disability in Enum.GetValues(typeof(Disabilities))) {
-            dis[disability] = false;
-        }
-    }
+    
 
     public virtual void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
@@ -56,6 +57,7 @@ public abstract class AgentBase : MonoBehaviour {
 }
 
 public class GenericClass : AgentBase {
+
     public override void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
     }
@@ -115,6 +117,30 @@ public class MoveTo : MonoBehaviour {
 
     // other
     List<GameObject> evacPoints;
+
+    // List to hold disabilities
+    public List<DisabilityStatus> disList = new List<DisabilityStatus>();
+
+    [Serializable]
+    public class DisabilityStatus {
+        public Disabilities disability;
+        public bool isEnabled;
+    }
+
+    private void Awake() {
+        foreach (Disabilities disability in Enum.GetValues(typeof(Disabilities))) {
+            disList.Add(new DisabilityStatus { disability = disability, isEnabled = false });
+        }
+        foreach (DisabilityStatus disStat in disList) {
+            if (disStat.isEnabled) {
+                // switch (disStat) {
+                //     case disStat.disability.Equals():
+                //         agent.speed = 0.5f;
+                // }
+
+            }
+        }
+    }
 
 
     Vector3 GetEvacPoint() {
@@ -210,3 +236,24 @@ public class MoveTo : MonoBehaviour {
         }
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(MoveTo))]
+public class MoveToEditor : Editor {
+    public override void OnInspectorGUI() {
+        DrawDefaultInspector();
+
+        MoveTo moveTo = (MoveTo)target;
+
+        EditorGUILayout.LabelField("Disabilities", EditorStyles.boldLabel);
+
+        foreach (var disabilityStatus in moveTo.disList) {
+            disabilityStatus.isEnabled = EditorGUILayout.Toggle(disabilityStatus.disability.ToString(), disabilityStatus.isEnabled);
+        }
+
+        if (GUI.changed) {
+            EditorUtility.SetDirty(target);
+        }
+    }
+}
+#endif
