@@ -2,11 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 
 public abstract class AgentBase : MonoBehaviour {
     public NavMeshAgent _agent;
+
+    [Range(1, 150)]
+    public int age = RandomNumberGenerator.GetInt32(1, 90);
 
     // Update is called once per frame
     public abstract void Update();
@@ -43,9 +47,7 @@ public abstract class AgentBase : MonoBehaviour {
     }
 }
 
-public class StudentClass : AgentBase {
-    public int a = 5;
-
+public class GenericClass : AgentBase {
     public override void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
     }
@@ -56,7 +58,7 @@ public class StudentClass : AgentBase {
 
     public override GameObject GetNextPassive() {
         GameObject[] studentPoints;
-        studentPoints = GameObject.FindGameObjectsWithTag("StudentTest");
+        studentPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
 
         System.Random random = new();
 
@@ -89,7 +91,7 @@ public class MoveTo : MonoBehaviour {
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
 
     // Set available classes for your agent here
-    public enum AgentClass { None, Student }
+    public enum AgentClass { None, Generic }
 
     // Public attributes
     [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
@@ -118,7 +120,7 @@ public class MoveTo : MonoBehaviour {
             return GetEvacPoint();
         } else {
             switch (currentClass) {
-                case AgentClass.Student:
+                case AgentClass.Generic:
                     currentGoal = ClassObject.GetNextPassive();
                     return currentGoal.transform.position;
                 case AgentClass.None:
@@ -141,8 +143,8 @@ public class MoveTo : MonoBehaviour {
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
         switch (currentClass) {
-            case AgentClass.Student:
-                ClassObject = gameObject.AddComponent<StudentClass>();
+            case AgentClass.Generic:
+                ClassObject = gameObject.AddComponent<GenericClass>();
                 ClassObject.AssignAgent(agent);
                 break;
             case AgentClass.None:
