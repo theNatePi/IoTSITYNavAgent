@@ -9,11 +9,19 @@ using UnityEngine.AI;
 public abstract class AgentBase : MonoBehaviour {
     public NavMeshAgent _agent;
 
+    private Dictionary<Disabilities, bool> dis = new Dictionary<Disabilities, bool>();
+
     [Range(1, 150)]
     public int age = RandomNumberGenerator.GetInt32(1, 90);
 
     // Update is called once per frame
     public abstract void Update();
+
+    private void Awake() {
+        foreach (Disabilities disability in Enum.GetValues(typeof(Disabilities))) {
+            dis[disability] = false;
+        }
+    }
 
     public virtual void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
