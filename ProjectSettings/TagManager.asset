@@ -8,6 +8,7 @@ TagManager:
   - Agent
   - StudentTest
   - GenericBuilding
+  - GenericResidential
   layers:
   - Default
   - TransparentFX
