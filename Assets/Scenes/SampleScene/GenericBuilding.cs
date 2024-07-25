@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System;
 using UnityEngine;
 
 public class GenericBuilding : MonoBehaviour
@@ -18,7 +16,11 @@ public class GenericBuilding : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        // Set the min and max age dynamically
+        System.Random random = new System.Random();
+        minimumAge = random.Next(1, 80); // [min, max)
+        int ageDifference = random.Next(10, 150);
+        maximumAge = Math.Min(minimumAge + ageDifference, 150);
     }
 
     // Update is called once per frame
