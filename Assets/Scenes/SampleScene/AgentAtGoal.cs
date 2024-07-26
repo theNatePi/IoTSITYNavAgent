@@ -1,23 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class AgentAtGoal : MonoBehaviour
 {
-    void OnTriggerEnter(Collider other)
+    public float detectionRadius = 1f;
+
+    [Range(1, 100000)]
+    public int capacity = 10;
+    public int population = 0;
+    HashSet<NavMeshAgent> uniqueAgents = new HashSet<NavMeshAgent>();
+
+    void Update()
     {
-        Debug.Log("s");
-        // Check if colliding object is an agent
-        if (other.CompareTag("Agent"))
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius);
+
+        foreach (Collider collider in colliders)
         {
-            Debug.Log("contact");
-            GameObject agent = other.gameObject;
-            // Remove the agent (choose your desired removal method)
-            Destroy(agent);  // Destroys the entire GameObject
-            // Alternatively, you can disable the agent and its components:
-            // agent.SetActive(false);
-            // agent.GetComponent<NavMeshAgent>().enabled = false;
+            if (collider.CompareTag("Agent"))
+            {
+                NavMeshAgent agent = collider.GetComponent<NavMeshAgent>();
+                if (agent != null && !uniqueAgents.Contains(agent)) {
+                    if (population < capacity) {
+                        uniqueAgents.Add(agent);
+                        population++;
+                        Destroy(collider.gameObject);
+                    }
+                }
+            }
         }
     }
 }
