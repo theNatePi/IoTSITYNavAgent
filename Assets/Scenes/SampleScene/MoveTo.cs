@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEditor;
@@ -17,18 +16,14 @@ public enum Disabilities {
 public abstract class AgentBase : MonoBehaviour {
     public NavMeshAgent _agent;
 
-    
-
     // Update is called once per frame
     public abstract void Update();
-
-    
 
     public virtual void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
     }
 
-    public virtual GameObject GetNextPassive() {return new GameObject();}
+    public virtual GameObject GetNextPassive() {return _agent.gameObject;}
 
     public virtual GameObject GetEvacPoint(List<GameObject> evacPoints) {
         float minPathLength = Mathf.Infinity;
@@ -67,16 +62,16 @@ public class GenericClass : AgentBase {
     }
 
     public override GameObject GetNextPassive() {
-        GameObject[] studentPoints;
-        studentPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
+        GameObject[] genericPoints;
+        genericPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
 
         System.Random random = new();
 
         // Get a random index within the array's length
-        int randomIndex = random.Next(studentPoints.Length);
+        int randomIndex = random.Next(genericPoints.Length);
 
         // Access the random element
-        GameObject randomElement = studentPoints[randomIndex];
+        GameObject randomElement = genericPoints[randomIndex];
 
         return randomElement; 
     }
@@ -91,26 +86,27 @@ public class MoveTo : MonoBehaviour {
     float updateTimer = 0f;
     float updateInterval = 2f;
     float evacDespawnCount = 0f;
-    bool reachedGoal = true;
-    public GameObject currentGoal;
+    private bool reachedGoal = true;
+    private GameObject currentGoal;
     private GameObject TimeSystem;
     private float _timeScale;
     private DateTime _currentTime;
+    private DateTime _departTime;
 
     [TextArea(1,1000)]
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
 
     // Set available classes for your agent here
-    public enum AgentClass { None, Generic }
+    public enum AgentClass { AgentBase, GenericClass }
 
     // Public attributes
     [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
     public float evacDespawnDelay = 10f;
     [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
     public bool evacuate = false;
-    [Tooltip("You cannot change this during playback")]
+    [Tooltip("You cannot change this during playback. You should not assign this to AgentBase")]
     public AgentClass currentClass;
-    AgentBase ClassObject;
+    public AgentBase ClassObject;
 
     // Tags for points
     readonly string evacTag = "EvacPoint";
@@ -142,33 +138,22 @@ public class MoveTo : MonoBehaviour {
         }
     }
 
-
-    Vector3 GetEvacPoint() {
-        currentGoal = ClassObject.GetEvacPoint(evacPoints);
-        return currentGoal.transform.position;
-    }
-
-
-    Vector3 GetGoal (NavMeshAgent agent) {
+    Vector3 GetGoal () {
         if (evacuate) {
-            return GetEvacPoint();
+            return ClassObject.GetEvacPoint(evacPoints).transform.position;
         } else {
-            switch (currentClass) {
-                case AgentClass.Generic:
-                    currentGoal = ClassObject.GetNextPassive();
-                    return currentGoal.transform.position;
-                case AgentClass.None:
-                    return agent.transform.position;
-                default:
-                    return agent.transform.position;
-                
-            }
+            return ClassObject.GetNextPassive().transform.position;
         }
     }
 
 
     void Start () {
         agent = GetComponent<NavMeshAgent>();
+        // Set the priority of the agnent, if all agents are the same, they will get stuck on
+        // each other
+        System.Random random = new();
+        int priority = random.Next(1, 10);
+        agent.avoidancePriority = priority;
 
         evacPoints = GameObject.FindGameObjectsWithTag(evacTag).ToList();
 
@@ -176,26 +161,20 @@ public class MoveTo : MonoBehaviour {
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
-        switch (currentClass) {
-            case AgentClass.Generic:
-                ClassObject = gameObject.AddComponent<GenericClass>();
-                ClassObject.AssignAgent(agent);
-                break;
-            case AgentClass.None:
-                ClassObject = gameObject.AddComponent<AgentBase>();
-                ClassObject.AssignAgent(agent);
-                break;
-            default:
-                ClassObject = gameObject.AddComponent<AgentBase>();
-                ClassObject.AssignAgent(agent);
-                break;
-        }
+        // Grab the class selected in the dropdown, and assign an object of this class to the agent
+        string className = currentClass.ToString();
+        Type type = Type.GetType(className);
+        ClassObject = gameObject.AddComponent(type) as AgentBase;
+        // ClassObject = gameObject.AddComponent<_class>();
+        ClassObject.AssignAgent(agent);
 
-        agent.destination = GetGoal(agent);
+        agent.destination = GetGoal();
     }
 
 
     void Update() {
+        if (Input.GetKey(KeyCode.E)) evacuate = !evacuate;
+
         updateTimer += Time.deltaTime;
 
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
@@ -203,10 +182,13 @@ public class MoveTo : MonoBehaviour {
 
         if (updateTimer >= updateInterval) {
             if (reachedGoal & !evacuate) {
-                agent.destination = GetGoal(agent);
+                agent.destination = GetGoal();
+                System.Random random = new();
+                int randomDiff = random.Next(5);
+                _departTime = _currentTime.AddHours(randomDiff);
                 reachedGoal = false;
             } else if (evacuate) {
-                agent.destination = GetGoal(agent);
+                agent.destination = GetGoal();
             }
             if (agent.remainingDistance <= agent.stoppingDistance + 1) {
                 if (evacuate) {
@@ -217,7 +199,7 @@ public class MoveTo : MonoBehaviour {
                             evacPoints.Remove(currentGoal);
 
                             if (evacPoints.Count > 0) {
-                                agent.destination = GetGoal(agent);
+                                agent.destination = GetGoal();
                             } else {
                                 evacuate = false;
                             }
@@ -226,7 +208,9 @@ public class MoveTo : MonoBehaviour {
                         evacDespawnCount++;
                     }
                 } else {
-                    reachedGoal = true;
+                    if (_currentTime >= _departTime) {
+                        reachedGoal = true;
+                    }
                 }
             } else {
                 evacDespawnCount = 0;
