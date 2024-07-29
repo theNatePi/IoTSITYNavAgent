@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffcdf705cc31142d983e03523703f43c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentGoal: {fileID: 0}
+  reachedGoal: 1
   README: '1) Add a NavMeshAgent to this game object
 
     2) Create objects for evac
@@ -289,7 +289,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 153842}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5000001
+  m_Radius: 1
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -607,7 +607,6 @@ GameObject:
   - component: {fileID: 54700813}
   - component: {fileID: 54700812}
   - component: {fileID: 54700810}
-  - component: {fileID: 134833926}
   m_Layer: 0
   m_Name: Cube (15)
   m_TagString: EvacPoint
@@ -793,28 +792,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 30
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!195 &134833926
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 54700809}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!1 &187627835
 GameObject:
   m_ObjectHideFlags: 0
@@ -827,7 +804,6 @@ GameObject:
   - component: {fileID: 187627839}
   - component: {fileID: 187627838}
   - component: {fileID: 187627837}
-  - component: {fileID: 187627836}
   - component: {fileID: 187627841}
   m_Layer: 0
   m_Name: Cube (16)
@@ -836,21 +812,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &187627836
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 187627835}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10487
-  population: 0
 --- !u!65 &187627837
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1200,7 +1161,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faf1ca07984b04af28ba358c4de3b6f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  genericResidents: 10
+  genericResidents: 10000
   seniorResidents: 10
 --- !u!1 &287351479
 GameObject:
@@ -1898,7 +1859,6 @@ GameObject:
   - component: {fileID: 518800135}
   - component: {fileID: 518800134}
   - component: {fileID: 518800133}
-  - component: {fileID: 518800131}
   - component: {fileID: 518800136}
   - component: {fileID: 565614051}
   m_Layer: 0
@@ -1908,21 +1868,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &518800131
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 518800130}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10
-  population: 0
 --- !u!23 &518800133
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2882,7 +2827,6 @@ GameObject:
   - component: {fileID: 919591144}
   - component: {fileID: 919591143}
   - component: {fileID: 919591142}
-  - component: {fileID: 919591141}
   - component: {fileID: 919591146}
   m_Layer: 0
   m_Name: Cube (19)
@@ -2891,21 +2835,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &919591141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 919591140}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10487
-  population: 0
 --- !u!65 &919591142
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4763,7 +4692,6 @@ GameObject:
   - component: {fileID: 1716729770}
   - component: {fileID: 1716729769}
   - component: {fileID: 1716729768}
-  - component: {fileID: 1716729766}
   - component: {fileID: 1716729771}
   - component: {fileID: 1622916744}
   m_Layer: 0
@@ -4773,21 +4701,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1716729766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1716729765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10
-  population: 0
 --- !u!23 &1716729768
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5174,7 +5087,6 @@ GameObject:
   - component: {fileID: 1811148429}
   - component: {fileID: 1811148428}
   - component: {fileID: 1811148427}
-  - component: {fileID: 1811148426}
   - component: {fileID: 1811148431}
   m_Layer: 0
   m_Name: Cube (20)
@@ -5183,21 +5095,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1811148426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1811148425}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10487
-  population: 0
 --- !u!65 &1811148427
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5499,7 +5396,6 @@ GameObject:
   - component: {fileID: 1850244785}
   - component: {fileID: 1850244784}
   - component: {fileID: 1850244783}
-  - component: {fileID: 1850244782}
   - component: {fileID: 1850244787}
   m_Layer: 0
   m_Name: Cube (22)
@@ -5508,21 +5404,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1850244782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850244781}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10487
-  population: 0
 --- !u!65 &1850244783
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5628,7 +5509,6 @@ GameObject:
   - component: {fileID: 1904143080}
   - component: {fileID: 1904143079}
   - component: {fileID: 1904143078}
-  - component: {fileID: 1904143076}
   - component: {fileID: 1904143081}
   - component: {fileID: 1992269950}
   m_Layer: 0
@@ -5638,21 +5518,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1904143076
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1904143075}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10
-  population: 0
 --- !u!23 &1904143078
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -5746,7 +5611,6 @@ GameObject:
   - component: {fileID: 1947656906}
   - component: {fileID: 1947656905}
   - component: {fileID: 1947656904}
-  - component: {fileID: 1947656903}
   - component: {fileID: 1947656908}
   m_Layer: 0
   m_Name: Cube (23)
@@ -5755,21 +5619,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1947656903
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1947656902}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84a0fec910ab347fab89f1ca40b976a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detectionRadius: 1
-  capacity: 10487
-  population: 0
 --- !u!65 &1947656904
 BoxCollider:
   m_ObjectHideFlags: 0
