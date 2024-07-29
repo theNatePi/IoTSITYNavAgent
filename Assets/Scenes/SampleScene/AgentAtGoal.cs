@@ -22,6 +22,11 @@ public class AgentAtGoal : MonoBehaviour
             if (collider.CompareTag("Agent"))
             {
                 NavMeshAgent agent = collider.GetComponent<NavMeshAgent>();
+                MoveTo agentScript = collider.GetComponent<MoveTo>();
+                if (!agentScript.evacuate) {
+                    // The agent is not evacuating, don't despawn them
+                    continue;
+                }
                 if (agent != null && !uniqueAgents.Contains(agent)) {
                     if (population < capacity) {
                         uniqueAgents.Add(agent);
