@@ -12,6 +12,8 @@ public class GenericResidential : MonoBehaviour
 
     private GameObject genericAgent;
 
+    private int delayCount = 5;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -29,6 +31,11 @@ public class GenericResidential : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // After all residences have a chance to spawn their agents, delete generic
+        if (delayCount > 10) {
+            Destroy(genericAgent);
+        } else {
+            delayCount++;
+        }
     }
 }
