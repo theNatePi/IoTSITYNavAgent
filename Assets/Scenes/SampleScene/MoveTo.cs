@@ -204,8 +204,6 @@ public class MoveTo : MonoBehaviour {
     }
 
     void _UpdatePassive() {
-        GameObject agentObject = agent.gameObject;
-
         if (reachedGoal) {
             agent.destination = GetGoal();
             System.Random random = new();
