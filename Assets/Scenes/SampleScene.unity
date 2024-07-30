@@ -1933,7 +1933,6 @@ GameObject:
   - component: {fileID: 518800134}
   - component: {fileID: 518800133}
   - component: {fileID: 518800136}
-  - component: {fileID: 565614051}
   m_Layer: 0
   m_Name: Cube (18)
   m_TagString: GenericBuilding
@@ -2022,28 +2021,6 @@ MonoBehaviour:
   maximumAge: 80
   timeOpen: 8
   timeClose: 18
---- !u!195 &565614051
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 518800130}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!1 &587359543
 GameObject:
   m_ObjectHideFlags: 0
@@ -4733,28 +4710,6 @@ MonoBehaviour:
   maximumAge: 80
   timeOpen: 8
   timeClose: 18
---- !u!195 &1622916744
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1716729765}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!1 &1716729765
 GameObject:
   m_ObjectHideFlags: 0
@@ -4767,7 +4722,6 @@ GameObject:
   - component: {fileID: 1716729769}
   - component: {fileID: 1716729768}
   - component: {fileID: 1716729771}
-  - component: {fileID: 1622916744}
   m_Layer: 0
   m_Name: Cube (17)
   m_TagString: GenericBuilding
@@ -5584,7 +5538,6 @@ GameObject:
   - component: {fileID: 1904143079}
   - component: {fileID: 1904143078}
   - component: {fileID: 1904143081}
-  - component: {fileID: 1992269950}
   m_Layer: 0
   m_Name: Cube (21)
   m_TagString: GenericBuilding
@@ -5878,28 +5831,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e9bb533875024e3a9fb24c48f17f970, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!195 &1992269950
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1904143075}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!1 &1998999694
 GameObject:
   m_ObjectHideFlags: 0
