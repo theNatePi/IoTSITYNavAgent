@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEditor;
+using OpenCover.Framework.Model;
 
 public enum Disabilities {
     None,
@@ -17,7 +18,7 @@ public enum Disabilities {
 public abstract class AgentBase : MonoBehaviour {
     public NavMeshAgent _agent;
 
-    
+    public int age;
 
     // Update is called once per frame
     public abstract void Update();
@@ -67,16 +68,16 @@ public class GenericClass : AgentBase {
     }
 
     public override GameObject GetNextPassive() {
-        GameObject[] studentPoints;
-        studentPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
+        GameObject[] genericPoints;
+        genericPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
 
         System.Random random = new();
 
         // Get a random index within the array's length
-        int randomIndex = random.Next(studentPoints.Length);
+        int randomIndex = random.Next(genericPoints.Length);
 
         // Access the random element
-        GameObject randomElement = studentPoints[randomIndex];
+        GameObject randomElement = genericPoints[randomIndex];
 
         return randomElement; 
     }
@@ -84,6 +85,31 @@ public class GenericClass : AgentBase {
     // public override GameObject GetEvacPoint(List<GameObject> evacPoints, NavMeshAgent agent) {
 
     // }
+}
+
+public class FirstResponder : AgentBase {
+    public override void AssignAgent (NavMeshAgent agent) {
+        _agent = agent;
+    }
+
+    // Update is called once per frame
+    public override void Update() {
+    }
+
+    public override GameObject GetNextPassive() {
+        GameObject[] genericPoints;
+        genericPoints = GameObject.FindGameObjectsWithTag("GenericBuilding");
+
+        System.Random random = new();
+
+        // Get a random index within the array's length
+        int randomIndex = random.Next(genericPoints.Length);
+
+        // Access the random element
+        GameObject randomElement = genericPoints[randomIndex];
+
+        return randomElement; 
+    }
 }
 
 public class MoveTo : MonoBehaviour {
@@ -101,7 +127,7 @@ public class MoveTo : MonoBehaviour {
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
 
     // Set available classes for your agent here
-    public enum AgentClass { None, Generic }
+    public enum AgentClass { None, Generic, FirstResponder }
 
     // Public attributes
     [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
@@ -127,21 +153,74 @@ public class MoveTo : MonoBehaviour {
         public bool isEnabled;
     }
 
-    private void Awake() {
+    // private void Awake() {
+    //     foreach (Disabilities disability in Enum.GetValues(typeof(Disabilities))) {
+    //         disList.Add(new DisabilityStatus { disability = disability, isEnabled = false });
+    //     }
+
+    //     foreach (DisabilityStatus disStat in disList) {
+    //         if (disStat.isEnabled) {
+    //             // switch (disStat) {
+    //             //     case disStat.disability.Equals():
+    //             //         agent.speed = 0.5f;
+    //             // }
+
+    //         }
+    //     }
+    // }
+
+    void InitializeDisabilities() {
         foreach (Disabilities disability in Enum.GetValues(typeof(Disabilities))) {
             disList.Add(new DisabilityStatus { disability = disability, isEnabled = false });
         }
-        foreach (DisabilityStatus disStat in disList) {
-            if (disStat.isEnabled) {
-                // switch (disStat) {
-                //     case disStat.disability.Equals():
-                //         agent.speed = 0.5f;
-                // }
+    }
 
+    void AssignRandomDisability() {
+        if (disList.Count > 0) {
+            System.Random random = new System.Random();
+            int randomIndex = random.Next(disList.Count);
+            disList[randomIndex].isEnabled = true;
+        }
+    }
+
+    void AdjustAgentSpeedForDisabilities() {
+        if (currentClass == AgentClass.Generic) {
+            agent.speed = 3.5f;
+            foreach (var disStat in disList) {
+                if (disStat.isEnabled) {
+                    switch (disStat.disability) {
+                        case Disabilities.None:
+                            agent.speed = 3.5f;
+                            break;
+                        case Disabilities.Wheelchair:
+                            agent.speed -= 1f;
+                            break;
+                        case Disabilities.Crutches:
+                            agent.speed -= 0.8f;
+                            break;
+                    }
+                }
             }
         }
     }
 
+    void AdjustAgentTypeForDisabilities() {
+        if (currentClass == AgentClass.Generic) {
+            foreach (var disStat in disList) {
+                if (disStat.isEnabled) {
+                    switch (disStat.disability) {
+                        case Disabilities.Wheelchair:
+                            agent.agentTypeID = NavMesh.GetSettingsByIndex(2).agentTypeID; // Change to your specific agent type index for Wheelchair
+                            break;
+                        // case Disabilities.Crutches:
+                        //     agent.agentTypeID = NavMesh.GetSettingsByIndex(2).agentTypeID; // Change to your specific agent type index for Crutches
+                        //     break;
+                        // Add cases for other disabilities as needed
+                    }
+                }
+            }
+        }
+    }
 
     Vector3 GetEvacPoint() {
         currentGoal = ClassObject.GetEvacPoint(evacPoints);
@@ -176,12 +255,25 @@ public class MoveTo : MonoBehaviour {
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
+        System.Random random = new System.Random();
+        int randomAge = random.Next(10, 106);
+
         switch (currentClass) {
             case AgentClass.Generic:
                 ClassObject = gameObject.AddComponent<GenericClass>();
                 ClassObject.AssignAgent(agent);
+                InitializeDisabilities();
+                AssignRandomDisability();
+                ClassObject.age = randomAge;
+                if (ClassObject.age >= 60) {
+                    agent.speed -= 0.3f;
+                } 
                 break;
             case AgentClass.None:
+                ClassObject = gameObject.AddComponent<AgentBase>();
+                ClassObject.AssignAgent(agent);
+                break;
+            case AgentClass.FirstResponder:
                 ClassObject = gameObject.AddComponent<AgentBase>();
                 ClassObject.AssignAgent(agent);
                 break;
@@ -190,6 +282,8 @@ public class MoveTo : MonoBehaviour {
                 ClassObject.AssignAgent(agent);
                 break;
         }
+
+        AdjustAgentTypeForDisabilities();
 
         agent.destination = GetGoal(agent);
     }
@@ -234,7 +328,10 @@ public class MoveTo : MonoBehaviour {
 
             updateTimer = 0f;
         }
+
+        AdjustAgentSpeedForDisabilities();
     }
+
 }
 
 #if UNITY_EDITOR
