@@ -85,7 +85,7 @@ public class MoveTo : MonoBehaviour {
     NavMeshAgent agent;
     float updateTimer = 0f;
     float updateInterval = 2f;
-    private bool reachedGoal = true;
+    private bool reachedGoal = false;
     private GameObject currentGoal;
     private GameObject TimeSystem;
     private float _timeScale;
@@ -197,19 +197,32 @@ public class MoveTo : MonoBehaviour {
     }
 
     void _UpdatePassive() {
+        GameObject agentObject = agent.gameObject;
+
         if (reachedGoal) {
             agent.destination = GetGoal();
             System.Random random = new();
-            int randomDiff = random.Next(5);
-            _departTime = _currentTime.AddHours(randomDiff);
+            int randomDiff = random.Next(15, 120);
+            _departTime = _currentTime.AddMinutes(randomDiff);
             reachedGoal = false;
+            // somehow make them not collide
+            foreach (var collider in agent.GetComponents<Collider>()) {
+                collider.enabled = false;
+            }
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
         }
 
         if (_currentTime >= _departTime) {
             reachedGoal = true;
         }
 
-        if (!(agent.remainingDistance <= agent.stoppingDistance + 1)) {
+        if (agent.remainingDistance <= agent.stoppingDistance + 1) {
+            // make the agents collide again
+            foreach (var collider in agent.GetComponents<Collider>()) {
+                collider.enabled = true;
+            }
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        } else {
             evacDespawnCount = 0;
         }
     }
