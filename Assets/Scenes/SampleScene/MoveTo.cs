@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEditor;
@@ -23,13 +22,11 @@ public abstract class AgentBase : MonoBehaviour {
     // Update is called once per frame
     public abstract void Update();
 
-    
-
     public virtual void AssignAgent (NavMeshAgent agent) {
         _agent = agent;
     }
 
-    public virtual GameObject GetNextPassive() {return new GameObject();}
+    public virtual GameObject GetNextPassive() {return _agent.gameObject;}
 
     public virtual GameObject GetEvacPoint(List<GameObject> evacPoints) {
         float minPathLength = Mathf.Infinity;
@@ -116,12 +113,13 @@ public class MoveTo : MonoBehaviour {
     NavMeshAgent agent;
     float updateTimer = 0f;
     float updateInterval = 2f;
-    float evacDespawnCount = 0f;
-    bool reachedGoal = true;
-    public GameObject currentGoal;
+    private bool reachedGoal = false;
+    private GameObject currentGoal;
     private GameObject TimeSystem;
     private float _timeScale;
     private DateTime _currentTime;
+    private DateTime _departTime;
+    public float evacDespawnCount = 0f;
 
     [TextArea(1,1000)]
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
@@ -130,13 +128,17 @@ public class MoveTo : MonoBehaviour {
     public enum AgentClass { None, Generic, FirstResponder }
 
     // Public attributes
+    [Range(1, 150)]
+    public int age;
+    [Range(1, 40)]
+    public int maxIncline = 20;
     [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
     public float evacDespawnDelay = 10f;
     [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
     public bool evacuate = false;
-    [Tooltip("You cannot change this during playback")]
+    [Tooltip("You cannot change this during playback. You should not assign this to AgentBase")]
     public AgentClass currentClass;
-    AgentBase ClassObject;
+    public AgentBase ClassObject;
 
     // Tags for points
     readonly string evacTag = "EvacPoint";
@@ -230,24 +232,22 @@ public class MoveTo : MonoBehaviour {
 
     Vector3 GetGoal (NavMeshAgent agent) {
         if (evacuate) {
-            return GetEvacPoint();
+            currentGoal = ClassObject.GetEvacPoint(evacPoints);
+            return currentGoal.transform.position;
         } else {
-            switch (currentClass) {
-                case AgentClass.Generic:
-                    currentGoal = ClassObject.GetNextPassive();
-                    return currentGoal.transform.position;
-                case AgentClass.None:
-                    return agent.transform.position;
-                default:
-                    return agent.transform.position;
-                
-            }
+            currentGoal = ClassObject.GetNextPassive();
+            return currentGoal.transform.position;
         }
     }
 
 
     void Start () {
         agent = GetComponent<NavMeshAgent>();
+        // Set the priority of the agnent, if all agents are the same, they will get stuck on
+        // each other
+        System.Random random = new();
+        int priority = random.Next(1, 10);
+        agent.avoidancePriority = priority;
 
         evacPoints = GameObject.FindGameObjectsWithTag(evacTag).ToList();
 
@@ -258,6 +258,70 @@ public class MoveTo : MonoBehaviour {
         System.Random random = new System.Random();
         int randomAge = random.Next(10, 106);
 
+        // TODO: Change this to be a distribution
+        age = random.Next(1, 150);
+
+        // Grab the class selected in the dropdown, and assign an object of this class to the agent
+        string className = currentClass.ToString();
+        Type type = Type.GetType(className);
+        ClassObject = gameObject.AddComponent(type) as AgentBase;
+        // ClassObject = gameObject.AddComponent<_class>();
+        ClassObject.AssignAgent(agent);
+
+        agent.destination = GetGoal();
+    }
+
+    void _UpdateEvac() {
+        if (!reachedGoal) {
+            agent.destination = GetGoal();
+            reachedGoal = true;
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 1) {
+            AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
+            if (goalScript.population >= goalScript.capacity) {
+                // This evac point is full
+                evacPoints.Remove(currentGoal);
+                if (evacPoints.Count > 0) {
+                    agent.destination = GetGoal();
+                } else {
+                    evacuate = false;
+                }
+            }
+            evacDespawnCount++;
+        } else {
+            evacDespawnCount = 0;
+        }
+    }
+
+    void _UpdatePassive() {
+        if (reachedGoal) {
+            agent.destination = GetGoal();
+            System.Random random = new();
+            int randomDiff = random.Next(15, 120);
+            _departTime = _currentTime.AddMinutes(randomDiff);
+            reachedGoal = false;
+            // somehow make them not collide
+            foreach (var collider in agent.GetComponents<Collider>()) {
+                collider.enabled = false;
+            }
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        }
+
+        if (_currentTime >= _departTime) {
+            reachedGoal = true;
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 1) {
+            // make the agents collide again
+            foreach (var collider in agent.GetComponents<Collider>()) {
+                collider.enabled = true;
+            }
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        } else {
+            evacDespawnCount = 0;
+        }
+    }
         switch (currentClass) {
             case AgentClass.Generic:
                 ClassObject = gameObject.AddComponent<GenericClass>();
@@ -290,42 +354,21 @@ public class MoveTo : MonoBehaviour {
 
 
     void Update() {
-        updateTimer += Time.deltaTime;
+        // Pressing E will command all agents to evacuate
+        if (Input.GetKey(KeyCode.E)) evacuate = !evacuate;
 
+        // Increase the update timer and current time
+        updateTimer += Time.deltaTime;
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
+        // If it is time to update the agent
         if (updateTimer >= updateInterval) {
-            if (reachedGoal & !evacuate) {
-                agent.destination = GetGoal(agent);
-                reachedGoal = false;
-            } else if (evacuate) {
-                agent.destination = GetGoal(agent);
-            }
-            if (agent.remainingDistance <= agent.stoppingDistance + 1) {
-                if (evacuate) {
-                    if (evacDespawnCount == evacDespawnDelay) {
-                        AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
-                        if (goalScript.population >= goalScript.capacity) {
-                            // This evac point is full
-                            evacPoints.Remove(currentGoal);
-
-                            if (evacPoints.Count > 0) {
-                                agent.destination = GetGoal(agent);
-                            } else {
-                                evacuate = false;
-                            }
-                        }
-                    } else {
-                        evacDespawnCount++;
-                    }
-                } else {
-                    reachedGoal = true;
-                }
+            if (evacuate) {
+                _UpdateEvac();
             } else {
-                evacDespawnCount = 0;
+                _UpdatePassive();
             }
-
             updateTimer = 0f;
         }
 

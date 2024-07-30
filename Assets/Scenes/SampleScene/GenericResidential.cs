@@ -12,6 +12,8 @@ public class GenericResidential : MonoBehaviour
 
     private GameObject genericAgent;
 
+    private int delayCount = 5;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -20,7 +22,8 @@ public class GenericResidential : MonoBehaviour
         for (int i = 0; i < genericResidents; i++)
         {
             GameObject newAgent = Instantiate(genericAgent, transform.position, Quaternion.identity);
-            newAgent.GetComponent<MoveTo>().currentClass = MoveTo.AgentClass.Generic;
+            newAgent.AddComponent<MoveTo>();
+            newAgent.GetComponent<MoveTo>().currentClass = MoveTo.AgentClass.GenericClass;
             // Add any additional setup for the new agent here, e.g., parenting, naming
         }
     }
@@ -28,6 +31,13 @@ public class GenericResidential : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // After all residences have a chance to spawn their agents, delete generic
+        if (genericAgent is not null) {
+            if (delayCount > 100) {
+                Destroy(genericAgent);
+            } else {
+                delayCount++;
+            }
+        }
     }
 }
