@@ -85,13 +85,13 @@ public class MoveTo : MonoBehaviour {
     NavMeshAgent agent;
     float updateTimer = 0f;
     float updateInterval = 2f;
-    float evacDespawnCount = 0f;
     private bool reachedGoal = true;
     private GameObject currentGoal;
     private GameObject TimeSystem;
     private float _timeScale;
     private DateTime _currentTime;
     private DateTime _departTime;
+    public float evacDespawnCount = 0f;
 
     [TextArea(1,1000)]
     public string README = "1) Add a NavMeshAgent to this game object\n2) Create objects for evac points and other POIs, ensure they are touching the NavMesh\n3) Add tags to these points and update the code with functionality for each tag (see comments). For evac points, include the tag \"EvacPoint\"";
@@ -140,9 +140,11 @@ public class MoveTo : MonoBehaviour {
 
     Vector3 GetGoal () {
         if (evacuate) {
-            return ClassObject.GetEvacPoint(evacPoints).transform.position;
+            currentGoal = ClassObject.GetEvacPoint(evacPoints);
+            return currentGoal.transform.position;
         } else {
-            return ClassObject.GetNextPassive().transform.position;
+            currentGoal = ClassObject.GetNextPassive();
+            return currentGoal.transform.position;
         }
     }
 
@@ -171,51 +173,63 @@ public class MoveTo : MonoBehaviour {
         agent.destination = GetGoal();
     }
 
+    void _UpdateEvac() {
+        if (!reachedGoal) {
+            agent.destination = GetGoal();
+            reachedGoal = true;
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance + 1) {
+            AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
+            if (goalScript.population >= goalScript.capacity) {
+                // This evac point is full
+                evacPoints.Remove(currentGoal);
+                if (evacPoints.Count > 0) {
+                    agent.destination = GetGoal();
+                } else {
+                    evacuate = false;
+                }
+            }
+            evacDespawnCount++;
+        } else {
+            evacDespawnCount = 0;
+        }
+    }
+
+    void _UpdatePassive() {
+        if (reachedGoal) {
+            agent.destination = GetGoal();
+            System.Random random = new();
+            int randomDiff = random.Next(5);
+            _departTime = _currentTime.AddHours(randomDiff);
+            reachedGoal = false;
+        }
+
+        if (_currentTime >= _departTime) {
+            reachedGoal = true;
+        }
+
+        if (!(agent.remainingDistance <= agent.stoppingDistance + 1)) {
+            evacDespawnCount = 0;
+        }
+    }
 
     void Update() {
+        // Pressing E will command all agents to evacuate
         if (Input.GetKey(KeyCode.E)) evacuate = !evacuate;
 
+        // Increase the update timer and current time
         updateTimer += Time.deltaTime;
-
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
 
+        // If it is time to update the agent
         if (updateTimer >= updateInterval) {
-            if (reachedGoal & !evacuate) {
-                agent.destination = GetGoal();
-                System.Random random = new();
-                int randomDiff = random.Next(5);
-                _departTime = _currentTime.AddHours(randomDiff);
-                reachedGoal = false;
-            } else if (evacuate) {
-                agent.destination = GetGoal();
-            }
-            if (agent.remainingDistance <= agent.stoppingDistance + 1) {
-                if (evacuate) {
-                    if (evacDespawnCount == evacDespawnDelay) {
-                        AgentAtGoal goalScript = currentGoal.GetComponent<AgentAtGoal>();
-                        if (goalScript.population >= goalScript.capacity) {
-                            // This evac point is full
-                            evacPoints.Remove(currentGoal);
-
-                            if (evacPoints.Count > 0) {
-                                agent.destination = GetGoal();
-                            } else {
-                                evacuate = false;
-                            }
-                        }
-                    } else {
-                        evacDespawnCount++;
-                    }
-                } else {
-                    if (_currentTime >= _departTime) {
-                        reachedGoal = true;
-                    }
-                }
+            if (evacuate) {
+                _UpdateEvac();
             } else {
-                evacDespawnCount = 0;
+                _UpdatePassive();
             }
-
             updateTimer = 0f;
         }
     }
