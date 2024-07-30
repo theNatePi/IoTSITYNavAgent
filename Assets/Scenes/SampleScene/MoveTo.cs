@@ -100,6 +100,10 @@ public class MoveTo : MonoBehaviour {
     public enum AgentClass { AgentBase, GenericClass }
 
     // Public attributes
+    [Range(1, 150)]
+    public int age;
+    [Range(1, 40)]
+    public int maxIncline = 20;
     [Tooltip("Time before agent is deleted once it reaches the EvacPoint"), Range(2f, 500f)]
     public float evacDespawnDelay = 10f;
     [Tooltip("When false, agent will follow a schedule based off of their class. When true, agent will move to nearest EvacPoint")]
@@ -162,6 +166,9 @@ public class MoveTo : MonoBehaviour {
         TimeSystem = GameObject.Find("TimeSystem");
         _timeScale = TimeSystem.GetComponent<TimeSystem>().timeScale;
         _currentTime = TimeSystem.GetComponent<TimeSystem>().simulatedTime;
+
+        // TODO: Change this to be a distribution
+        age = random.Next(1, 150);
 
         // Grab the class selected in the dropdown, and assign an object of this class to the agent
         string className = currentClass.ToString();
