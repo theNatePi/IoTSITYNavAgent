@@ -32,10 +32,12 @@ public class GenericResidential : MonoBehaviour
     void Update()
     {
         // After all residences have a chance to spawn their agents, delete generic
-        if (delayCount > 10) {
-            Destroy(genericAgent);
-        } else {
-            delayCount++;
+        if (genericAgent is not null) {
+            if (delayCount > 100) {
+                Destroy(genericAgent);
+            } else {
+                delayCount++;
+            }
         }
     }
 }
